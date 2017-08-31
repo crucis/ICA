@@ -79,21 +79,23 @@ def mutualInformation_matrix(signal, kde=False, n_bins=None):
                     q_bins = len(np.histogram(q, bins='fd')[0])
                     n_bins = min(p_bins, q_bins)
                 elif n_bins == 'auto':
-                    ys = np.sort(q)
-                    xs = np.sort(p)
+                    qs = np.sort(q)
+                    ps = np.sort(p)
                     qbin_sqr = np.sqrt(5./cols)
                     quantiles = np.linspace(0, 1, 1./qbin_sqr)
                     quantile_index = ((cols-1)*quantiles).astype(int)
                     #move edges so that they don't coincide with an observation
                     shift = 1e-6 + np.ones(quantiles.shape)
                     shift[0] -= 2*1e-6
-                    binsy = ys[quantile_index] + shift
-                    binsx = xs[quantile_index] + shift
+                    q_bins = qs[quantile_index] + shift
+                    p_bins = ps[quantile_index] + shift
+                    n_bins = min(p_bins, q_bins)
+
                 #mi = mutualinfo_binned(p, q, n_bins)[0]
                 
-                fx, binsx = np.histogram(p, bins=binsx)
-                fy, binsy = np.histogram(q, bins=binsy)
-                fyx, binsy, binsx = np.histogram2d(q, p, bins=(binsy, binsx))
+                fx, binsx = np.histogram(p, bins = p_bins)
+                fy, binsy = np.histogram(q, bins = q_bins)
+                fyx, binsy, binsx = np.histogram2d(q, p, bins = (binsy, binsx))
 
                 pyx = fyx * 1. / cols
                 px = fx * 1. / cols

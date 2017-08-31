@@ -13,15 +13,19 @@ def g(y):
 def f(y):
     return np.power(y,3)
 
-def NPCA_RLS(mixtures, learning_rate):
+def NPCA_RLS(mixtures, learningRate = 1e-6, runs = 5, decay = True, decayRate = 0.005):
     P = np.identity(mixtures.shape[0])
     W = np.identity(mixtures.shape[0])
     y = np.zeros(mixtures.shape)
     beta = 0.9
     whitenedMixtures = whiten(mixtures)
     
-    for j in np.arange(2):
+    for j in np.arange(runs):
         for i in np.arange(whitenedMixtures.shape[1]):
+            if decay:
+                learning_rate = np.exp(-decayRate*i)*learningRate
+            else:
+                learning_rate = learningRate
             y[:,i] = np.dot(W, whitenedMixtures[:,i])
             z = np.reshape(g(y[:,i]), (mixtures.shape[0], 1))
             h = np.dot(P,z)
@@ -41,7 +45,7 @@ def NPCA_RLS(mixtures, learning_rate):
     return y, W
     #return np.dot(W, mixtures), W
 
-def cichocki_Feedforward(mixtures, learning_rate):
+def cichocki_Feedforward(mixtures, learningRate = 1e-6, runs = 5, decay = True, decayRate = 0.005):
     # FeedFoward
     I = np.identity(mixtures.shape[0])
     W = I
@@ -50,8 +54,12 @@ def cichocki_Feedforward(mixtures, learning_rate):
     
     whitenedMixtures = whiten(mixtures)
     
-    for j in np.arange(2):
+    for j in np.arange(runs):
         for i in np.arange(mixtures.shape[1]):
+            if decay:
+                learning_rate = np.exp(-decayRate*i)*learningRate
+            else:
+                learning_rate = learningRate
             input_ = np.reshape(whitenedMixtures[:,i], (mixtures.shape[0], 1))
 
             y[:,i] = np.reshape(np.dot(W, input_), (mixtures.shape[0],))
@@ -67,7 +75,7 @@ def cichocki_Feedforward(mixtures, learning_rate):
     #return np.dot(W, mixtures), W
 
 
-def cichocki_Feedback(mixtures, learning_rate):
+def cichocki_Feedback(mixtures, learningRate = 1e-6, runs = 5, decay = True, decayRate  = 0.005):
     # Feedback
     I = np.identity(mixtures.shape[0])
     W = np.zeros((mixtures.shape[0], mixtures.shape[0]))
@@ -76,8 +84,12 @@ def cichocki_Feedback(mixtures, learning_rate):
    
     whitenedMixtures = whiten(mixtures)
 
-    for j in np.arange(5):
+    for j in np.arange(runs):
         for i in np.arange(mixtures.shape[1]):
+            if decay:
+                learning_rate = np.exp(-decayRate*i)*learningRate
+            else:
+                learning_rate = learningRate
             inversa = inv(I+W)
             input_ = np.reshape(whitenedMixtures[:,i], (mixtures.shape[0], 1))
 
