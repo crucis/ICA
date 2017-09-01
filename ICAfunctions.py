@@ -6,6 +6,7 @@ import pandas as pd
 from pandas.plotting import scatter_matrix
 from scipy.stats import entropy, chi2_contingency, shapiro
 from sklearn.decomposition import PCA
+import time
 
 def g(y):
     #return np.multiply(np.power(y,2),np.sign(y))
@@ -16,6 +17,8 @@ def f(y):
     #return np.power(y,3)
 
 def NPCA_RLS(mixtures, beta = 0.996, runs = 5):
+    start_time = time.time()
+
     P = np.identity(mixtures.shape[0])
     W = np.identity(mixtures.shape[0])
     #dW = W
@@ -45,15 +48,18 @@ def NPCA_RLS(mixtures, beta = 0.996, runs = 5):
             W = W + dW
             if (np.isnan(W).any() == True):
                 print('Lost convergence at iterator %d'%i)
-                break
+                return y, W
             elif np.all(np.absolute(W) < 1e-6):
                 print('Found convergence at iterator %d on run %d'%(i,j))
-                break
+                return y, W
+    print('Execution time: %s seconds'%(time.time()-start_time))
     return y, W
     #return np.dot(W, mixtures), W
 
 def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 5, decay = True, decayRate = 0.005):
     # FeedFoward
+    start_time = time.time()
+
     I = np.identity(mixtures.shape[0])
     W = I
     y = np.zeros(mixtures.shape)
@@ -80,12 +86,15 @@ def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 5, decay = True, 
             elif np.all(np.absolute(W) < 1e-6):
                 print('Found convergence at iterator %d on run %d'%(i,j))
                 return y, W
+    print('Execution time: %s seconds'%(time.time()-start_time))
     return y, W
     #return np.dot(W, mixtures), W
 
 
 def cichocki_Feedback(mixtures, learningRate = 1e-2, runs = 5, decay = True, decayRate  = 0.005):
     # Feedback
+    start_time = time.time()
+
     I = np.identity(mixtures.shape[0])
     W = np.zeros((mixtures.shape[0], mixtures.shape[0]))
     y = np.zeros(mixtures.shape)
@@ -113,5 +122,6 @@ def cichocki_Feedback(mixtures, learningRate = 1e-2, runs = 5, decay = True, dec
             elif np.all(np.absolute(W) < 1e-12):
                 print('Found convergence at iterator %d on run %d'%(i,j))
                 return y, inv(I+W)
+    print('Execution time: %s seconds'%(time.time()-start_time))
+
     return y, inv(I+W)
-    #return np.dot(W, mixtures), W
