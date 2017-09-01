@@ -16,7 +16,7 @@ def f(y):
     return np.multiply(np.power(y,2),np.sign(y))
     #return np.power(y,3)
 
-def NPCA_RLS(mixtures, beta = 0.996, runs = 5):
+def NPCA_RLS(mixtures, beta = 0.996, decay = False, decayRate = 0.01, runs = 5):
     start_time = time.time()
 
     P = np.identity(mixtures.shape[0])
@@ -31,6 +31,10 @@ def NPCA_RLS(mixtures, beta = 0.996, runs = 5):
     
     for j in np.arange(runs):
         for i in np.arange(whitenedMixtures.shape[1]):
+            if decay:
+                beta = 2 - 1/(1-np.exp(-i-4))
+            else:
+                beta = beta
             y[:,i] = np.dot(W, whitenedMixtures[:,i])
             z = g(y[:,i])
             h = np.dot(P,z)
