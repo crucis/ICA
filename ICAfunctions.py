@@ -15,12 +15,12 @@ def f(y):
     return np.multiply(np.power(y,2),np.sign(y))
     #return np.power(y,3)
 
-def NPCA_RLS(mixtures, runs = 5):
+def NPCA_RLS(mixtures, beta = 0.996, runs = 5):
     P = np.identity(mixtures.shape[0])
     W = np.identity(mixtures.shape[0])
     #dW = W
     y = np.zeros(mixtures.shape)
-    beta = 0.996
+    
     #whitenedMixtures = mixtures
     #whitenedMixtures = whiten(mixtures.T).T
     pca = PCA(whiten=True)
