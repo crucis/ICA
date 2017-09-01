@@ -9,7 +9,7 @@ from sklearn.decomposition import PCA
 
 def g(y):
     #return np.multiply(np.power(y,2),np.sign(y))
-    return np.tanh(10*y)
+    return np.tanh(0.5*y)
 
 def f(y):
     return np.multiply(np.power(y,2),np.sign(y))
@@ -20,7 +20,7 @@ def NPCA_RLS(mixtures, runs = 5):
     W = np.identity(mixtures.shape[0])
     #dW = W
     y = np.zeros(mixtures.shape)
-    beta = 0.9
+    beta = 0.996
     #whitenedMixtures = mixtures
     #whitenedMixtures = whiten(mixtures.T).T
     pca = PCA(whiten=True)
@@ -34,8 +34,8 @@ def NPCA_RLS(mixtures, runs = 5):
             m = h/(beta + np.dot(z.T, h))
 
             Triangle = P - np.outer(m, h.T)
-            lowerIndices = np.tril_indices(whitenedMixtures.shape[0])
-            Triangle[lowerIndices] = Triangle.T[lowerIndices]
+            #lowerIndices = np.tril_indices(whitenedMixtures.shape[0])
+            #Triangle[lowerIndices] = Triangle.T[lowerIndices]
 
             P = (1/beta) * Triangle
             e =  whitenedMixtures[:,i] - np.dot(W.T,z)
