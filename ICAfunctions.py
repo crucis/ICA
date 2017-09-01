@@ -5,13 +5,15 @@ from scipy.cluster.vq import whiten
 import pandas as pd
 from pandas.plotting import scatter_matrix
 from scipy.stats import entropy, chi2_contingency, shapiro
+from sklearn.decomposition import PCA
 
 def g(y):
-    return np.multiply(np.power(y,2),np.sign(y))
-    #return np.tanh(10*y)
+    #return np.multiply(np.power(y,2),np.sign(y))
+    return np.tanh(10*y)
 
 def f(y):
-    return np.power(y,3)
+    return np.multiply(np.power(y,2),np.sign(y))
+    #return np.power(y,3)
 
 def NPCA_RLS(mixtures, runs = 5):
     P = np.identity(mixtures.shape[0])
@@ -19,7 +21,10 @@ def NPCA_RLS(mixtures, runs = 5):
     #dW = W
     y = np.zeros(mixtures.shape)
     beta = 0.9
-    whitenedMixtures = whiten(mixtures)
+    #whitenedMixtures = mixtures
+    #whitenedMixtures = whiten(mixtures.T).T
+    pca = PCA(whiten=True)
+    whitenedMixtures = pca.fit_transform(mixtures.T).T
     
     for j in np.arange(runs):
         for i in np.arange(whitenedMixtures.shape[1]):
@@ -54,7 +59,9 @@ def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 5, decay = True, 
     y = np.zeros(mixtures.shape)
     dW = np.ones(W.shape) - I
     
-    whitenedMixtures = whiten(mixtures)
+    #whitenedMixtures = whiten(mixtures)
+    pca = PCA(whiten=True)
+    whitenedMixtures = pca.fit_transform(mixtures.T).T
     
     for j in np.arange(runs):
         for i in np.arange(mixtures.shape[1]):
@@ -62,13 +69,10 @@ def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 5, decay = True, 
                 learning_rate = np.exp(-decayRate*(i+j))*learningRate
             else:
                 learning_rate = learningRate
-            input_ = np.reshape(whitenedMixtures[:,i], (mixtures.shape[0], 1))
 
-            y[:,i] = np.reshape(np.dot(W, input_), (mixtures.shape[0],))
-            gY = np.reshape(g(y[:,i]), (mixtures.shape[0],1))
-            fY = np.reshape(f(y[:,i]), (mixtures.shape[0],1))
+            y[:,i] = np.dot(W, whitenedMixtures[:,i])
 
-            dW = np.dot(I-np.dot(fY,np.transpose(gY)),W)
+            dW = np.dot(I-np.outer(f(y[:,i]),g(y[:,i]).T),W)
             W = W + learning_rate*dW
             if (np.isnan(W).any() == True):
                 print('Lost convergence at iterator %d'%i)
@@ -87,22 +91,20 @@ def cichocki_Feedback(mixtures, learningRate = 1e-2, runs = 5, decay = True, dec
     y = np.zeros(mixtures.shape)
     dW = np.ones(W.shape) - I
    
-    whitenedMixtures = whiten(mixtures)
-
+    #whitenedMixtures = whiten(mixtures)
+    pca = PCA(whiten=True)
+    whitenedMixtures = pca.fit_transform(mixtures.T).T
+    
     for j in np.arange(runs):
         for i in np.arange(mixtures.shape[1]):
             if decay:
                 learning_rate = np.exp(-decayRate*(i+j))*learningRate
             else:
                 learning_rate = learningRate
-            inversa = inv(I+W)
-            input_ = np.reshape(whitenedMixtures[:,i], (mixtures.shape[0], 1))
 
-            y[:,i] = np.reshape(np.dot(inversa, input_), (mixtures.shape[0],))
-            gY = np.reshape(g(y[:,i]), (mixtures.shape[0],1))
-            fY = np.reshape(f(y[:,i]), (mixtures.shape[0],1))
+            y[:,i] = np.dot(inv(I+W), whitenedMixtures[:,i])
 
-            dW = np.dot((I+W),I-np.dot(fY,np.transpose(gY)))
+            dW = np.dot((I+W),I-np.outer(f(y[:,i]),g(y[:,i]).T))
             W = W - learning_rate*dW
 
             if (np.isnan(W).any() == True):
