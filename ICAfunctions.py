@@ -16,7 +16,7 @@ def f(y):
 def NPCA_RLS(mixtures, runs = 5):
     P = np.identity(mixtures.shape[0])
     W = np.identity(mixtures.shape[0])
-    dW = W
+    #dW = W
     y = np.zeros(mixtures.shape)
     beta = 0.9
     whitenedMixtures = whiten(mixtures)
@@ -24,18 +24,18 @@ def NPCA_RLS(mixtures, runs = 5):
     for j in np.arange(runs):
         for i in np.arange(whitenedMixtures.shape[1]):
             y[:,i] = np.dot(W, whitenedMixtures[:,i])
-            z = np.reshape(g(y[:,i]), (mixtures.shape[0], 1))
+            z = g(y[:,i])
             h = np.dot(P,z)
-            m = h/(beta + np.dot(np.transpose(z),h))
+            m = h/(beta + np.dot(z.T, h))
 
-            Triangle = P - np.dot(m, np.transpose(h))
+            Triangle = P - np.outer(m, h.T)
             lowerIndices = np.tril_indices(whitenedMixtures.shape[0])
             Triangle[lowerIndices] = Triangle.T[lowerIndices]
 
             P = (1/beta) * Triangle
-            e =  np.reshape(whitenedMixtures[:,i], (whitenedMixtures.shape[0], 1)) - np.dot(np.transpose(W),z)
+            e =  whitenedMixtures[:,i] - np.dot(W.T,z)
             
-            dW = np.dot(m,np.transpose(e))
+            dW = np.outer(m, e.T)
             
             W = W + dW
             if (np.isnan(W).any() == True):
