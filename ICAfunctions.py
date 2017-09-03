@@ -16,7 +16,7 @@ def f(y):
     return np.multiply(np.power(y,2),np.sign(y))
     #return np.power(y,3)
 
-def NPCA_RLS(mixtures, beta = 0.996, decay = False, decayRate = 0.01, runs = 5):
+def NPCA_RLS(mixtures, beta = 0.996, decay = False, decayRate = 0.01, runs = 1):
     start_time = time.time()
 
     P = np.identity(mixtures.shape[0])
@@ -60,7 +60,7 @@ def NPCA_RLS(mixtures, beta = 0.996, decay = False, decayRate = 0.01, runs = 5):
     return y, W
     #return np.dot(W, mixtures), W
 
-def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 5, decay = True, decayRate = 0.005):
+def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 1, decay = True, decayRate = 0.005):
     # FeedFoward
     start_time = time.time()
 
@@ -95,7 +95,7 @@ def cichocki_Feedforward(mixtures, learningRate = 1e-2, runs = 5, decay = True, 
     #return np.dot(W, mixtures), W
 
 
-def cichocki_Feedback(mixtures, learningRate = 1e-2, runs = 5, decay = True, decayRate  = 0.005):
+def cichocki_Feedback(mixtures, learningRate = 1e-2, runs = 1, decay = True, decayRate  = 0.005):
     # Feedback
     start_time = time.time()
 

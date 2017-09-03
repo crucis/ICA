@@ -126,13 +126,19 @@ def plot_MutualInformation(mixtures, y, KDE = False, nbins = None):
     import seaborn as sb
 
     
-    fig, axs = plt.subplots(1, 2, figsize=(13, 4))
+    fig, axs = plt.subplots(2, 2, figsize=(13, 10))
     
-    sb.heatmap(mutualInformation_matrix(mixtures, kde=KDE, n_bins = nbins), ax=axs[0], annot=True, cmap = 'YlGnBu', vmin = 0, vmax = 1)
-    axs[0].set_title('Mutual Information: mixed signals')
+    sb.heatmap(mutualInformation_matrix(mixtures, kde=KDE, n_bins = nbins), ax=axs[0,0], annot=True, cmap = 'YlGnBu', vmin = 0, vmax = 1)
+    axs[0, 0].set_title('Mutual Information: mixtures')
+    sb.heatmap(np.abs(np.corrcoef(mixtures)), annot=True, cmap = 'YlOrRd', ax = axs[0,1], vmin = 0, vmax =  1)
+    axs[0, 1].set_title('Abs Correlation matrix: mixtures')
+
     
-    sb.heatmap(mutualInformation_matrix(y, kde = KDE, n_bins = nbins), ax=axs[1], annot=True, cmap = 'YlGnBu', vmin = 0, vmax = 1)
-    axs[1].set_title('Mutual Information: outputs')
+    sb.heatmap(mutualInformation_matrix(y, kde = KDE, n_bins = nbins), ax=axs[1, 0], annot=True, cmap = 'YlGnBu', vmin = 0, vmax = 1)
+    axs[1, 0].set_title('Mutual Information: outputs')
+    
+    sb.heatmap(np.abs(np.corrcoef(y)), annot=True, cmap = 'YlOrRd', ax = axs[1,1], vmin = 0, vmax =  1)
+    axs[1, 1].set_title('Abs Correlation matrix: outputs')
     
     return None
 
