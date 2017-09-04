@@ -158,19 +158,24 @@ def best_fit_distribution(data, bins=200, ax=None):
     x = (x + np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
-    DISTRIBUTIONS = [        
-        st.alpha,st.anglit,st.arcsine,st.beta,st.betaprime,st.bradford,st.burr,st.cauchy,st.chi,st.chi2,st.cosine,
-        st.dgamma,st.dweibull,st.erlang,st.expon,st.exponnorm,st.exponweib,st.exponpow,st.f,st.fatiguelife,st.fisk,
-        st.foldcauchy,st.foldnorm,st.frechet_r,st.frechet_l,st.genlogistic,st.genpareto,st.gennorm,st.genexpon,
-        st.genextreme,st.gausshyper,st.gamma,st.gengamma,st.genhalflogistic,st.gilbrat,st.gompertz,st.gumbel_r,
-        st.gumbel_l,st.halfcauchy,st.halflogistic,st.halfnorm,st.halfgennorm,st.hypsecant,st.invgamma,st.invgauss,
-        st.invweibull,st.johnsonsb,st.johnsonsu,st.ksone,st.kstwobign,st.laplace,st.levy,st.levy_l,st.levy_stable,
-        st.logistic,st.loggamma,st.loglaplace,st.lognorm,st.lomax,st.maxwell,st.mielke,st.nakagami,st.ncx2,st.ncf,
-        st.nct,st.norm,st.pareto,st.pearson3,st.powerlaw,st.powerlognorm,st.powernorm,st.rdist,st.reciprocal,
-        st.rayleigh,st.rice,st.recipinvgauss,st.semicircular,st.t,st.triang,st.truncexpon,st.truncnorm,st.tukeylambda,
-        st.uniform,st.vonmises,st.vonmises_line,st.wald,st.weibull_min,st.weibull_max,st.wrapcauchy
-    ]
+    #DISTRIBUTIONS = [        
+    #    st.alpha,st.anglit,st.arcsine,st.beta,st.betaprime,st.bradford,st.burr,st.cauchy,st.chi,st.chi2,st.cosine,
+    #    st.dgamma,st.dweibull,st.erlang,st.expon,st.exponnorm,st.exponweib,st.exponpow,st.f,st.fatiguelife,st.fisk,
+    #    st.foldcauchy,st.foldnorm,st.frechet_r,st.frechet_l,st.genlogistic,st.genpareto,st.gennorm,st.genexpon,
+    #    st.genextreme,st.gausshyper,st.gamma,st.gengamma,st.genhalflogistic,st.gilbrat,st.gompertz,st.gumbel_r,
+    #    st.gumbel_l,st.halfcauchy,st.halflogistic,st.halfnorm,st.halfgennorm,st.hypsecant,st.invgamma,st.invgauss,
+    #    st.invweibull,st.johnsonsb,st.johnsonsu,st.ksone,st.kstwobign,st.laplace,st.levy,st.levy_l,st.levy_stable,
+    #    st.logistic,st.loggamma,st.loglaplace,st.lognorm,st.lomax,st.maxwell,st.mielke,st.nakagami,st.ncx2,st.ncf,
+    #    st.nct,st.norm,st.pareto,st.pearson3,st.powerlaw,st.powerlognorm,st.powernorm,st.rdist,st.reciprocal,
+    #    st.rayleigh,st.rice,st.recipinvgauss,st.semicircular,st.t,st.triang,st.truncexpon,st.truncnorm,st.tukeylambda,
+    #    st.uniform,st.vonmises,st.vonmises_line,st.wald,st.weibull_min,st.weibull_max,st.wrapcauchy
+    #]
 
+    DISTRIBUTIONS = [
+        st.arcsine, st.argus, st.beta, st.cauchy, st.chi, st.chi2, st.dweibull, st.erlang, st.fisk, st.gamma, st.laplace,
+        st.logistic, st.loggamma, st.loglaplace, st.maxwell, st.norm, st.lognorm, st.rayleigh, st.triang, st.uniform
+    ]
+    
     # Best holders
     best_distribution = st.norm
     best_params = (0.0, 1.0)
@@ -178,6 +183,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     #best_sse = np.inf
     best_p = 0
     best_chi2_stat = np.inf
+    best_log_likelihood = 0
     
     # Estimate distribution parameters from data
     for distribution in DISTRIBUTIONS:
@@ -206,7 +212,7 @@ def best_fit_distribution(data, bins=200, ax=None):
                 chi_squared_stat = (((y - pdf)**2)/pdf).sum()
                 p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = len(y) - 1 - deltaDof)
                
-                
+                log_likelihood = distribution.logpdf(x, loc = loc, scale = scale, *arg).sum()
                 # if axis pass in add to plot
                 try:
                     if ax:
@@ -218,18 +224,20 @@ def best_fit_distribution(data, bins=200, ax=None):
                 # identify if this distribution is better
                 #if best_sse > sse > 0:
                 #if p_value > best_p:
-                if best_chi2_stat > chi_squared_stat > 0:
+                #if best_chi2_stat > chi_squared_stat > 0:
+                if log_likelihood > best_log_likelihood > 0:
                     best_distribution = distribution
                     best_params = params
                     #best_sse = sse
                     best_p = p_value
                     best_pdf_statistics = pdf_statistics
                     best_chi2_stat = chi_squared_stat
+                    best_log_likelihood = log_likelihood
                     
         except Exception:
             pass
 
-    return (best_distribution.name, best_params, best_chi2_stat, best_p, best_pdf_statistics)
+    return (best_distribution.name, best_params, best_chi2_stat, best_p, best_pdf_statistics, best_log_likelihood)
 
 def make_pdf(dist, params, size=10000):
     """Generate distributions's Propbability Distribution Function """
@@ -260,7 +268,7 @@ def graph_fittedData(data_to_be_fitted):
 
     import seaborn as sb
     import scipy.stats as st
-    best_fit_name, best_fit_paramms, chi2_stat, p_value, pdf_stats  = best_fit_distribution(data_to_be_fitted, bins = 'fd')
+    best_fit_name, best_fit_paramms, chi2_stat, p_value, pdf_stats, log_likelihood  = best_fit_distribution(data_to_be_fitted, bins = 'fd')
     best_dist = getattr(st, best_fit_name)
 
     arg = best_fit_paramms[:-2]
@@ -273,7 +281,7 @@ def graph_fittedData(data_to_be_fitted):
 
     plt.plot(lnspace, pdf, 'c')
     plt.title(best_fit_name + ' PDF')
-    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 = %.4f$\n$p_{value} = %.4f$'%(mu, var, skew, kurt, chi2_stat, p_value)
+    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 = %.4f$\n$p_{value} = %.4f$\n$log likelihood = %.4f$'%(mu, var, skew, kurt, chi2_stat, p_value, log_likelihood)
 
 
     plt.text(4.2, 0.10, textstring)
