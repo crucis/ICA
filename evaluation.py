@@ -153,7 +153,8 @@ def best_fit_distribution(data, bins=200, ax=None):
 
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
-    y, x = np.histogram(data, bins=bins, density=True)
+    #y, x = np.histogram(data, bins=bins, density=True)
+    y, x = np.histogram(data, bins = bins, normed = True)
     x = (x + np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
@@ -173,8 +174,10 @@ def best_fit_distribution(data, bins=200, ax=None):
     # Best holders
     best_distribution = st.norm
     best_params = (0.0, 1.0)
-    best_sse = np.inf
+    best_pdf_statistics = st.norm.stats(loc = 0, scale = 1, moments = 'mvsk')
+    #best_sse = np.inf
     best_p = 0
+    best_chi2_stat = np.inf
     
     # Estimate distribution parameters from data
     for distribution in DISTRIBUTIONS:
@@ -195,29 +198,38 @@ def best_fit_distribution(data, bins=200, ax=None):
 
                 # Calculate fitted PDF and error with fit in distribution
                 pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
-                #sse = np.sum(np.power(y - pdf, 2.0))
-                chisq, p_value = chisquare(f_obs = y, f_exp = pdf)
+                pdf_statistics = distribution.stats(loc=loc, scale=scale, moments = 'mvsk', *arg)
 
+                #sse = np.sum(np.power(y - pdf, 2.0))
+                deltaDof = len(params)
+                #chisq, p_value = chisquare(f_obs = y, f_exp = pdf, ddof = deltaDof)
+                chi_squared_stat = (((y - pdf)**2)/pdf).sum()
+                p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = len(y) - 1 - deltaDof)
+               
+                
                 # if axis pass in add to plot
                 try:
                     if ax:
-                        pd.Series(pdf, x).plot(ax=ax)
+                        pd.Series(pdf, x).plot(ax = ax)
                     end
                 except Exception:
                     pass
 
                 # identify if this distribution is better
                 #if best_sse > sse > 0:
-                if p_value > best_p:
+                #if p_value > best_p:
+                if best_chi2_stat > chi_squared_stat > 0:
                     best_distribution = distribution
                     best_params = params
                     #best_sse = sse
                     best_p = p_value
+                    best_pdf_statistics = pdf_statistics
+                    best_chi2_stat = chi_squared_stat
                     
         except Exception:
             pass
 
-    return (best_distribution.name, best_params)
+    return (best_distribution.name, best_params, best_chi2_stat, best_p, best_pdf_statistics)
 
 def make_pdf(dist, params, size=10000):
     """Generate distributions's Propbability Distribution Function """
@@ -238,3 +250,33 @@ def make_pdf(dist, params, size=10000):
 
     #return pdf
     return y
+
+def graph_fittedData(data_to_be_fitted):
+    from scipy.stats import laplace, chisquare, norm
+
+    lnspace = np.linspace(np.amin(data_to_be_fitted), np.amax(data_to_be_fitted), len(data_to_be_fitted))
+
+    plt.hist(data_to_be_fitted, bins = 'fd', normed=True)
+
+    import seaborn as sb
+    import scipy.stats as st
+    best_fit_name, best_fit_paramms, chi2_stat, p_value, pdf_stats  = best_fit_distribution(data_to_be_fitted, bins = 'fd')
+    best_dist = getattr(st, best_fit_name)
+
+    arg = best_fit_paramms[:-2]
+    pdf = best_dist.pdf(lnspace, loc = best_fit_paramms[-2], scale = best_fit_paramms[-1], *arg)
+
+    mu = pdf_stats[0]
+    var = pdf_stats[1]
+    skew = pdf_stats[2]
+    kurt = pdf_stats[3]
+
+    plt.plot(lnspace, pdf, 'c')
+    plt.title(best_fit_name + ' PDF')
+    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 = %.4f$\n$p_{value} = %.4f$'%(mu, var, skew, kurt, chi2_stat, p_value)
+
+
+    plt.text(4.2, 0.10, textstring)
+    plt.show()
+
+    return None
