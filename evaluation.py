@@ -153,7 +153,6 @@ def best_fit_distribution(data, bins=200, ax=None):
 
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
-    #y, x = np.histogram(data, bins=bins, density=True)
     y, x = np.histogram(data, bins = bins, normed = True)
     x = (x + np.roll(x, -1))[:-1] / 2.0
 
@@ -180,10 +179,9 @@ def best_fit_distribution(data, bins=200, ax=None):
     best_distribution = st.norm
     best_params = (0.0, 1.0)
     best_pdf_statistics = st.norm.stats(loc = 0, scale = 1, moments = 'mvsk')
-    #best_sse = np.inf
     best_p = 0
     best_chi2_stat = np.inf
-    best_log_likelihood = 0
+    best_log_likelihood = -np.inf
     
     # Estimate distribution parameters from data
     for distribution in DISTRIBUTIONS:
@@ -206,9 +204,8 @@ def best_fit_distribution(data, bins=200, ax=None):
                 pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
                 pdf_statistics = distribution.stats(loc=loc, scale=scale, moments = 'mvsk', *arg)
 
-                #sse = np.sum(np.power(y - pdf, 2.0))
                 deltaDof = len(params)
-                #chisq, p_value = chisquare(f_obs = y, f_exp = pdf, ddof = deltaDof)
+
                 chi_squared_stat = (((y - pdf)**2)/pdf).sum()
                 p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = len(y) - 1 - deltaDof)
                
@@ -222,10 +219,9 @@ def best_fit_distribution(data, bins=200, ax=None):
                     pass
 
                 # identify if this distribution is better
-                #if best_sse > sse > 0:
                 #if p_value > best_p:
-                #if best_chi2_stat > chi_squared_stat > 0:
-                if log_likelihood > best_log_likelihood > 0:
+                if best_chi2_stat > chi_squared_stat > 0:
+                #if best_log_likelihood < log_likelihood:
                     best_distribution = distribution
                     best_params = params
                     #best_sse = sse
