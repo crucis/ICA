@@ -170,9 +170,12 @@ def best_fit_distribution(data, bins=200, ax=None):
     #    st.uniform,st.vonmises,st.vonmises_line,st.wald,st.weibull_min,st.weibull_max,st.wrapcauchy
     #]
 
+    #DISTRIBUTIONS = [
+    #    st.arcsine, st.argus, st.beta, st.cauchy, st.chi, st.chi2, st.dweibull, st.erlang, st.fisk, st.gamma, st.laplace,
+    #    st.logistic, st.loggamma, st.loglaplace, st.maxwell, st.norm, st.lognorm, st.rayleigh, st.triang, st.uniform
+    #]
     DISTRIBUTIONS = [
-        st.arcsine, st.argus, st.beta, st.cauchy, st.chi, st.chi2, st.dweibull, st.erlang, st.fisk, st.gamma, st.laplace,
-        st.logistic, st.loggamma, st.loglaplace, st.maxwell, st.norm, st.lognorm, st.rayleigh, st.triang, st.uniform
+        st.beta, st.cauchy, st.chi, st.chi2, st.dweibull, st.gamma, st.laplace, st.logistic, st.norm, st.rayleigh, st.uniform
     ]
     
     # Best holders
@@ -209,7 +212,7 @@ def best_fit_distribution(data, bins=200, ax=None):
                 chi_squared_stat = (((y - pdf)**2)/pdf).sum()
                 p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = len(y) - 1 - deltaDof)
                
-                log_likelihood = distribution.logpdf(x, loc = loc, scale = scale, *arg).sum()
+                log_likelihood = np.sum(distribution.logpdf(x, loc = loc, scale = scale, *arg))
                 # if axis pass in add to plot
                 try:
                     if ax:
