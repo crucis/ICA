@@ -153,7 +153,9 @@ def best_fit_distribution(data, bins=200, ax=None):
 
     """Model data by finding best fit distribution to data"""
     # Get histogram of original data
-    y, x = np.histogram(data, bins = bins, normed = True)
+    #y, x = np.histogram(data, bins = bins, normed = True)
+    y, x = np.histogram(data, bins = bins)
+    nbins = len(y)
     x = (x + np.roll(x, -1))[:-1] / 2.0
 
     # Distributions to check
@@ -185,6 +187,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     best_p = 0
     best_chi2_stat = np.inf
     best_log_likelihood = -np.inf
+    best_normalized_chi2 = np.inf
     
     # Estimate distribution parameters from data
     for distribution in DISTRIBUTIONS:
@@ -206,11 +209,17 @@ def best_fit_distribution(data, bins=200, ax=None):
                 # Calculate fitted PDF and error with fit in distribution
                 pdf = distribution.pdf(x, loc=loc, scale=scale, *arg)
                 pdf_statistics = distribution.stats(loc=loc, scale=scale, moments = 'mvsk', *arg)
+                
+                expected = distribution.rvs(size = len(data), loc = loc, scale = scale, *arg)
+                expected_histogram = np.histogram(expected, bins = nbins)[0]
 
                 deltaDof = len(params)
 
-                chi_squared_stat = (((y - pdf)**2)/pdf).sum()
-                p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = len(y) - 1 - deltaDof)
+                #chi_squared_stat = st.chisquare(y, expected_histogram)
+                chi_squared_stat = (((y - expected_histogram)**2)/expected_histogram).sum()
+                normalized_chi2_stat = chi_squared_stat/(nbins - 1 - deltaDof)
+                
+                p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = nbins - 1 - deltaDof)
                
                 log_likelihood = np.sum(distribution.logpdf(x, loc = loc, scale = scale, *arg))
                 # if axis pass in add to plot
@@ -224,7 +233,9 @@ def best_fit_distribution(data, bins=200, ax=None):
                 # identify if this distribution is better
                 #if p_value > best_p:
                 if best_chi2_stat > chi_squared_stat > 0:
+                
                 #if best_log_likelihood < log_likelihood:
+                #if np.abs(1-normalized_chi2_stat) < np.abs(1-best_normalized_chi2):
                     best_distribution = distribution
                     best_params = params
                     #best_sse = sse
@@ -232,11 +243,12 @@ def best_fit_distribution(data, bins=200, ax=None):
                     best_pdf_statistics = pdf_statistics
                     best_chi2_stat = chi_squared_stat
                     best_log_likelihood = log_likelihood
+                    best_normalized_chi2 = normalized_chi2_stat
                     
         except Exception:
             pass
 
-    return (best_distribution.name, best_params, best_chi2_stat, best_p, best_pdf_statistics, best_log_likelihood)
+    return (best_distribution.name, best_params, best_normalized_chi2, best_p, best_pdf_statistics, best_log_likelihood)
 
 def make_pdf(dist, params, size=10000):
     """Generate distributions's Propbability Distribution Function """
@@ -280,7 +292,7 @@ def graph_fittedData(data_to_be_fitted):
 
     plt.plot(lnspace, pdf, 'c')
     plt.title(best_fit_name + ' PDF')
-    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 = %.4f$\n$p_{value} = %.4f$\n$log likelihood = %.4f$'%(mu, var, skew, kurt, chi2_stat, p_value, log_likelihood)
+    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 /dof = %.4f$\n$p_{value} = %.4f$\n$log likelihood = %.4f$'%(mu, var, skew, kurt, chi2_stat, p_value, log_likelihood)
 
 
     plt.text(4.2, 0.10, textstring)
