@@ -5,6 +5,8 @@ from scipy.cluster.vq import whiten
 import pandas as pd
 from pandas.plotting import scatter_matrix
 from scipy.stats import entropy, chi2_contingency, shapiro, norm
+import seaborn as sb
+
 
 def kde_entropy(x, bandwidth = 'silverman', **kwargs):
     from statsmodels.nonparametric.kde import KDEUnivariate
@@ -50,6 +52,27 @@ def calculateNegentropy(x, kindOfNegentropy = 'empirical', n_bins = None):
     else:
         print('Not implemented')
         return None
+    
+def KLmatrix(x, y):
+    print(x.shape, y.shape)
+    KL_matrix = np.zeros((x.shape[0], y.shape[0]))
+    for i in np.arange(x.shape[0]):
+        for j in np.arange(y.shape[0]):
+            bins_x = len(np.histogram(x[i], bins = 'fd')[0])
+            bins_y = len(np.histogram(y[j], bins = 'fd')[0])
+            n_bins = min(bins_x, bins_y)
+            
+            KL_matrix[i,j] = entropy(np.histogram(x[i], bins = n_bins)[0], np.histogram(y[j], bins = n_bins)[0])
+    
+    print(KL_matrix)
+    
+    sb.heatmap(KL_matrix, annot=True, cmap = 'PuRd')#, vmin = 0, vmax =  1)
+    plt.title('KL_divergence matrix')
+    plt.ylabel('Sources')
+    plt.xlabel('Estimations')
+    plt.show()
+    
+    return None
     
 def resultsTable(y, n_bins = None, negentropyType = 'empirical'):
     import tabulate
@@ -123,8 +146,6 @@ def mutualInformation_matrix(signal, kde=False, n_bins=None):
     return mat
 
 def plot_MutualInformation(mixtures, y, KDE = False, nbins = None):
-    import seaborn as sb
-
     
     fig, axs = plt.subplots(2, 2, figsize=(13, 10))
     
@@ -177,7 +198,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     #    st.logistic, st.loggamma, st.loglaplace, st.maxwell, st.norm, st.lognorm, st.rayleigh, st.triang, st.uniform
     #]
     DISTRIBUTIONS = [
-        st.beta, st.cauchy, st.chi, st.chi2, st.dweibull, st.gamma, st.laplace, st.logistic, st.norm, st.rayleigh, st.uniform
+        st.chi, st.chi2, st.laplace, st.norm, st.rayleigh, st.uniform
     ]
     
     # Best holders
@@ -186,7 +207,7 @@ def best_fit_distribution(data, bins=200, ax=None):
     best_pdf_statistics = st.norm.stats(loc = 0, scale = 1, moments = 'mvsk')
     best_p = 0
     best_chi2_stat = np.inf
-    best_log_likelihood = -np.inf
+    #best_log_likelihood = -np.inf
     best_normalized_chi2 = np.inf
     
     # Estimate distribution parameters from data
@@ -221,7 +242,7 @@ def best_fit_distribution(data, bins=200, ax=None):
                 
                 p_value = 1 - st.chi2.cdf(x = chi_squared_stat, df = nbins - 1 - deltaDof)
                
-                log_likelihood = np.sum(distribution.logpdf(x, loc = loc, scale = scale, *arg))
+                #log_likelihood = np.sum(distribution.logpdf(x, loc = loc, scale = scale, *arg))
                 # if axis pass in add to plot
                 try:
                     if ax:
@@ -233,22 +254,23 @@ def best_fit_distribution(data, bins=200, ax=None):
                 # identify if this distribution is better
                 #if p_value > best_p:
                 #if best_chi2_stat > chi_squared_stat > 0:
-                
+                if best_normalized_chi2 > normalized_chi2_stat > 0:
+
                 #if best_log_likelihood < log_likelihood:
-                if np.abs(1-normalized_chi2_stat) < np.abs(1-best_normalized_chi2):
+                #if np.abs(1-normalized_chi2_stat) < np.abs(1-best_normalized_chi2):
                     best_distribution = distribution
                     best_params = params
                     #best_sse = sse
                     best_p = p_value
                     best_pdf_statistics = pdf_statistics
                     best_chi2_stat = chi_squared_stat
-                    best_log_likelihood = log_likelihood
+                    #best_log_likelihood = log_likelihood
                     best_normalized_chi2 = normalized_chi2_stat
                     
         except Exception:
             pass
 
-    return (best_distribution.name, best_params, best_normalized_chi2, best_p, best_pdf_statistics, best_log_likelihood)
+    return (best_distribution.name, best_params, best_normalized_chi2, best_p, best_pdf_statistics)#, best_log_likelihood)
 
 def make_pdf(dist, params, size=10000):
     """Generate distributions's Propbability Distribution Function """
@@ -279,7 +301,7 @@ def graph_fittedData(data_to_be_fitted):
 
     import seaborn as sb
     import scipy.stats as st
-    best_fit_name, best_fit_paramms, chi2_stat, p_value, pdf_stats, log_likelihood  = best_fit_distribution(data_to_be_fitted, bins = 'fd')
+    best_fit_name, best_fit_paramms, chi2_stat, p_value, pdf_stats  = best_fit_distribution(data_to_be_fitted, bins = 'fd')
     best_dist = getattr(st, best_fit_name)
 
     arg = best_fit_paramms[:-2]
@@ -292,7 +314,7 @@ def graph_fittedData(data_to_be_fitted):
 
     plt.plot(lnspace, pdf, 'c')
     plt.title(best_fit_name + ' PDF')
-    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 /dof = %.4f$\n$p_{value} = %.4f$\n$log likelihood = %.4f$'%(mu, var, skew, kurt, chi2_stat, p_value, log_likelihood)
+    textstring = '$\mu = %.4f$\n$\delta ^2 = %.4f$\n$skew = %.4f$\n$kurt = %.4f$\n$\chi ^2 /dof = %.4f$\n$p_{value} = %.4f'%(mu, var, skew, kurt, chi2_stat, p_value)
 
 
     plt.text(4.2, 0.10, textstring)
