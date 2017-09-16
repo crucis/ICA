@@ -232,10 +232,10 @@ def best_fit_distribution(data, bins=200, ax=None):
 
                 # identify if this distribution is better
                 #if p_value > best_p:
-                if best_chi2_stat > chi_squared_stat > 0:
+                #if best_chi2_stat > chi_squared_stat > 0:
                 
                 #if best_log_likelihood < log_likelihood:
-                #if np.abs(1-normalized_chi2_stat) < np.abs(1-best_normalized_chi2):
+                if np.abs(1-normalized_chi2_stat) < np.abs(1-best_normalized_chi2):
                     best_distribution = distribution
                     best_params = params
                     #best_sse = sse
