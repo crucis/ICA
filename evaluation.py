@@ -62,16 +62,33 @@ def KLmatrix(x, y):
             bins_y = len(np.histogram(y[j], bins = 'fd')[0])
             n_bins = min(bins_x, bins_y)
             
-            KL_matrix[i,j] = entropy(np.histogram(x[i], bins = n_bins)[0], np.histogram(y[j], bins = n_bins)[0])
+            KL_matrix[i,j] = entropy(np.histogram(x[i], bins = n_bins, normed = True)[0]+1e-12, 
+                                     np.histogram(y[j], bins = n_bins, normed = True)[0]+1e-12)
     
     print(KL_matrix)
     
-    sb.heatmap(KL_matrix, annot=True, cmap = 'PuRd')#, vmin = 0, vmax =  1)
+    sb.heatmap(KL_matrix, annot = True, cmap = 'copper')#, vmin = 0, vmax =  1)
     plt.title('KL_divergence matrix')
     plt.ylabel('Sources')
     plt.xlabel('Estimations')
     plt.show()
     
+    return None
+
+def MImatrix(x,y):
+    from statsmodels.sandbox.distributions.mv_measures import mutualinfo_kde, mutualinfo_binned
+    
+    mi = np.zeros((x.shape[0], y.shape[0]))
+    
+    for i in np.arange(x.shape[0]):
+        for j in np.arange(y.shape[0]):
+            mi[i,j] = mutualinfo_kde(x[i], y[j])
+            
+    sb.heatmap(mi, annot = True, cmap = 'Wistia', vmin = 0, vmax = 1)
+    plt.title('Mutual information')
+    plt.ylabel('Sources')
+    plt.xlabel('Estimations')
+    plt.show()
     return None
     
 def resultsTable(y, n_bins = None, negentropyType = 'empirical'):
@@ -99,8 +116,8 @@ def mutualInformation_matrix(signal, kde=False, n_bins=None):
         for c in range(r, rows):
             if r == c:
                 continue
-            p = signal[r].flatten() + 1e-12
-            q = signal[c].flatten() + 1e-12
+            p = signal[r].flatten()
+            q = signal[c].flatten()
             if kde:
                 mi = mutualinfo_kde(p, q)
             else:
@@ -320,4 +337,21 @@ def graph_fittedData(data_to_be_fitted):
     plt.text(4.2, 0.10, textstring)
     plt.show()
 
+    return None
+
+def SSIMmatrix(sources, estimations):
+    from skimage.measure import compare_ssim
+    
+    ssim = np.zeros((estimations.shape[0], estimations.shape[0]))
+    
+    for i in np.arange(sources.shape[0]):
+        for j in np.arange(estimations.shape[0]):
+            ssim[i,j] = compare_ssim(X = sources[i], Y = estimations[j], multichannel = True)
+    
+    sb.heatmap(ssim, annot = True, cmap = 'Wistia', vmin = 0, vmax = 1)
+    plt.title('Structural Similiraty')
+    plt.ylabel('Sources')
+    plt.xlabel('Estimations')
+    plt.show()
+    
     return None
