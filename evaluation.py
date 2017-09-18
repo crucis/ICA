@@ -366,10 +366,10 @@ def coherenceMatrix(sources, estimations):
     S2 = sources[1]
     S3 = sources[2]
     
-    x1 = coherence(S1, estimations[0])
-    x2 = coherence(S1, estimations[1])
-    x3 = coherence(S1, estimations[2])
-    x4 = coherence(S1, estimations[3])
+    x1 = coherence(S1, estimations[0], fs = 44100)
+    x2 = coherence(S1, estimations[1], fs = 44100)
+    x3 = coherence(S1, estimations[2], fs = 44100)
+    x4 = coherence(S1, estimations[3], fs = 44100)
     
     
     axs[0, 0].plot(x1[0], x1[1])
@@ -378,10 +378,10 @@ def coherenceMatrix(sources, estimations):
     axs[3, 0].plot(x4[0], x4[1])
     axs[0, 0].set_title('Despacito')
     
-    y1 = coherence(S2, estimations[0])
-    y2 = coherence(S2, estimations[1])
-    y3 = coherence(S2, estimations[2])
-    y4 = coherence(S2, estimations[3])
+    y1 = coherence(S2, estimations[0], fs = 44100)
+    y2 = coherence(S2, estimations[1], fs = 44100)
+    y3 = coherence(S2, estimations[2], fs = 44100)
+    y4 = coherence(S2, estimations[3], fs = 44100)
 
     axs[0, 1].plot(y1[0], y1[1])
     axs[1, 1].plot(y2[0], y2[1])
@@ -389,10 +389,10 @@ def coherenceMatrix(sources, estimations):
     axs[3, 1].plot(y4[0], y4[1])
     axs[0, 1].set_title('Mongol throat')
     
-    z1 = coherence(S3, estimations[0])
-    z2 = coherence(S3, estimations[1])
-    z3 = coherence(S3, estimations[2])
-    z4 = coherence(S3, estimations[3])    
+    z1 = coherence(S3, estimations[0], fs = 44100)
+    z2 = coherence(S3, estimations[1], fs = 44100)
+    z3 = coherence(S3, estimations[2], fs = 44100)
+    z4 = coherence(S3, estimations[3], fs = 44100)    
 
     axs[0, 2].plot(z1[0], z1[1])
     axs[1, 2].plot(z2[0], z2[1])
