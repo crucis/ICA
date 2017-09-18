@@ -75,20 +75,35 @@ def KLmatrix(x, y):
     
     return None
 
-def MImatrix(x,y):
+def MImatrix(x, y, KDE = True):
     from statsmodels.sandbox.distributions.mv_measures import mutualinfo_kde, mutualinfo_binned
     
     mi = np.zeros((x.shape[0], y.shape[0]))
-    
     for i in np.arange(x.shape[0]):
         for j in np.arange(y.shape[0]):
-            mi[i,j] = mutualinfo_kde(x[i], y[j])
+            if KDE == True:
+                mi[i,j] = mutualinfo_kde(x[i], y[j])
+            else:
+                fx, binsx = np.histogram(x, bins = 'fd')
+                fy, binsy = np.histogram(y, bins = 'fd')
+                fyx, binsy, binsx = np.histogram2d(y, x, bins = (binsy, binsx))
+
+                pyx = fyx * 1. / cols
+                px = fx * 1. / cols
+                py = fy * 1. / cols
+
+
+                mi_obs = pyx * (np.log(pyx + 1e-12) - np.log(py + 1e-12)[:,None] - np.log(px + 1e-12))
+                mi_obs[np.isnan(mi_obs)] = 0
+                mi_obs[np.isinf(mi_obs)] = 0
+                mi[i,j] = mi_obs.sum()
             
     sb.heatmap(mi, annot = True, cmap = 'Wistia', vmin = 0, vmax = 1)
     plt.title('Mutual information')
     plt.ylabel('Sources')
     plt.xlabel('Estimations')
     plt.show()
+    
     return None
     
 def resultsTable(y, n_bins = None, negentropyType = 'empirical'):
