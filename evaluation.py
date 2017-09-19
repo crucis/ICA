@@ -354,14 +354,14 @@ def graph_fittedData(data_to_be_fitted):
 
     return None
 
-def SSIMmatrix(sources, estimations):
+def SSIMmatrix(sources, estimations, multiChannel = False):
     from skimage.measure import compare_ssim
     
     ssim = np.zeros((estimations.shape[0], estimations.shape[0]))
     
     for i in np.arange(sources.shape[0]):
         for j in np.arange(estimations.shape[0]):
-            ssim[i,j] = compare_ssim(X = sources[i], Y = estimations[j], multichannel = True)
+            ssim[i,j] = compare_ssim(X = sources[i], Y = estimations[j], multichannel = multiChannel)
     
     sb.heatmap(ssim, annot = True, cmap = 'Wistia', vmin = 0, vmax = 1)
     plt.title('Structural Similiraty')
@@ -376,7 +376,9 @@ def coherenceMatrix(sources, estimations):
     from scipy.signal import coherence
     
     fig, axs = plt.subplots(4,3)
-
+    
+    values = np.zeros((4,3))
+    
     S1 = sources[0]
     S2 = sources[1]
     S3 = sources[2]
@@ -386,6 +388,11 @@ def coherenceMatrix(sources, estimations):
     x3 = coherence(S1, estimations[2], fs = 44100)
     x4 = coherence(S1, estimations[3], fs = 44100)
     
+    values[0, 0] = x1.sum()/x1[0].shape
+    values[1, 0] = x2.sum()/x2[0].shape
+    values[2, 0] = x3.sum()/x3[0].shape
+    values[3, 0] = x4.sum()/x4[0].shape
+
     
     axs[0, 0].plot(x1[0], x1[1])
     axs[1, 0].plot(x2[0], x2[1])
@@ -397,7 +404,12 @@ def coherenceMatrix(sources, estimations):
     y2 = coherence(S2, estimations[1], fs = 44100)
     y3 = coherence(S2, estimations[2], fs = 44100)
     y4 = coherence(S2, estimations[3], fs = 44100)
-
+    
+    values[0, 1] = y1.sum()/y1[0].shape
+    values[1, 1] = y2.sum()/y2[0].shape
+    values[2, 1] = y3.sum()/y3[0].shape
+    values[3, 1] = y4.sum()/y4[0].shape
+    
     axs[0, 1].plot(y1[0], y1[1])
     axs[1, 1].plot(y2[0], y2[1])
     axs[2, 1].plot(y3[0], y3[1])
@@ -409,6 +421,11 @@ def coherenceMatrix(sources, estimations):
     z3 = coherence(S3, estimations[2], fs = 44100)
     z4 = coherence(S3, estimations[3], fs = 44100)    
 
+    values[0, 2] = z1.sum()/z1[0].shape
+    values[1, 2] = z2.sum()/z2[0].shape
+    values[2, 2] = z3.sum()/z3[0].shape
+    values[3, 2] = z4.sum()/z4[0].shape
+    
     axs[0, 2].plot(z1[0], z1[1])
     axs[1, 2].plot(z2[0], z2[1])
     axs[2, 2].plot(z3[0], z3[1])
@@ -418,4 +435,4 @@ def coherenceMatrix(sources, estimations):
     plt.tight_layout()
     plt.show()
     
-    return None
+    return values
