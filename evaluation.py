@@ -413,7 +413,7 @@ def coherenceMatrix(sources, estimations):
     axs[1, 2].plot(z2[0], z2[1])
     axs[2, 2].plot(z3[0], z3[1])
     axs[3, 2].plot(z4[0], z4[1])
-    axs[0, 2].set_title('Mongol throat')
+    axs[0, 2].set_title('Xuxa')
     
     plt.tight_layout()
     plt.show()
