@@ -388,10 +388,10 @@ def coherenceMatrix(sources, estimations):
     x3 = coherence(S1, estimations[2], fs = 44100)
     x4 = coherence(S1, estimations[3], fs = 44100)
     
-    values[0, 0] = x1.sum()/x1[0].shape
-    values[1, 0] = x2.sum()/x2[0].shape
-    values[2, 0] = x3.sum()/x3[0].shape
-    values[3, 0] = x4.sum()/x4[0].shape
+    values[0, 0] = x1[1].sum()/x1[0].shape
+    values[1, 0] = x2[1].sum()/x2[0].shape
+    values[2, 0] = x3[1].sum()/x3[0].shape
+    values[3, 0] = x4[1].sum()/x4[0].shape
 
     
     axs[0, 0].plot(x1[0], x1[1])
@@ -405,10 +405,10 @@ def coherenceMatrix(sources, estimations):
     y3 = coherence(S2, estimations[2], fs = 44100)
     y4 = coherence(S2, estimations[3], fs = 44100)
     
-    values[0, 1] = y1.sum()/y1[0].shape
-    values[1, 1] = y2.sum()/y2[0].shape
-    values[2, 1] = y3.sum()/y3[0].shape
-    values[3, 1] = y4.sum()/y4[0].shape
+    values[0, 1] = y1[1].sum()/y1[0].shape
+    values[1, 1] = y2[1].sum()/y2[0].shape
+    values[2, 1] = y3[1].sum()/y3[0].shape
+    values[3, 1] = y4[1].sum()/y4[0].shape
     
     axs[0, 1].plot(y1[0], y1[1])
     axs[1, 1].plot(y2[0], y2[1])
@@ -421,10 +421,10 @@ def coherenceMatrix(sources, estimations):
     z3 = coherence(S3, estimations[2], fs = 44100)
     z4 = coherence(S3, estimations[3], fs = 44100)    
 
-    values[0, 2] = z1.sum()/z1[0].shape
-    values[1, 2] = z2.sum()/z2[0].shape
-    values[2, 2] = z3.sum()/z3[0].shape
-    values[3, 2] = z4.sum()/z4[0].shape
+    values[0, 2] = z1[1].sum()/z1[0].shape
+    values[1, 2] = z2[1].sum()/z2[0].shape
+    values[2, 2] = z3[1].sum()/z3[0].shape
+    values[3, 2] = z4[1].sum()/z4[0].shape
     
     axs[0, 2].plot(z1[0], z1[1])
     axs[1, 2].plot(z2[0], z2[1])
